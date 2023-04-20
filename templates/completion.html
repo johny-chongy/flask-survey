@@ -7,8 +7,8 @@
   {% endfor %}
 
   <ul>
-    {% for i in range %}
-      <li><b>{{ questions[i].prompt }}</b> {{ responses[i] }}</li>
+    {% for question in questions %}
+      <li><b>{{ question.prompt }}</b>{{ responses[loop.index0] }}</li>
     {% endfor %}
   </ul>
 

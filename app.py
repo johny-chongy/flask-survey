@@ -8,8 +8,9 @@ app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 debug = DebugToolbarExtension(app)
 
-# session["responses"] = [] # initialize responses list
+# TODO: prevent error, make variable for session key and access
 
+SESSION_KEY = 'responses'
 
 @app.get('/')
 def get_root():
@@ -18,8 +19,9 @@ def get_root():
     button to start survey
     TODO: no need to be TOO specific for doc string
     """
+
     reset_session = []
-    session["responses"] = reset_session
+    session[SESSION_KEY] = reset_session
 
     return render_template("survey_start.html",
                            survey_title=survey.title,
@@ -44,7 +46,7 @@ def show_question(number):
 
     """
 
-    survey_progress = len(session["responses"])
+    survey_progress = len(session[SESSION_KEY])
 
     if survey_progress == len(survey.questions):
 
@@ -72,11 +74,11 @@ def handle_response():
     """
 
     survey_response = request.form["answer"]
-    current_responses = session["responses"]
+    current_responses = session[SESSION_KEY]
     current_responses.append(survey_response)
-    session["responses"] = current_responses #add previous question answer to responses
+    session[SESSION_KEY] = current_responses #add previous question answer to responses
 
-    survey_progress = len(session["responses"])
+    survey_progress = len(session[SESSION_KEY])
 
     if survey_progress >= len(survey.questions):
         flash("yay!")
@@ -91,9 +93,7 @@ def get_completion():
     renders completion page
 
     """
-    question_length = range(len(survey.questions))
 
     return render_template("completion.html",
-                           responses = session["responses"],
-                           questions = survey.questions,
-                           range = question_length)
+                           responses = session[SESSION_KEY],
+                           questions = survey.questions)
