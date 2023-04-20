@@ -2,6 +2,16 @@
 
 {% block content %}
 
+  {% for message in get_flashed_messages() %}
+    <p>{{ message }}</p>
+  {% endfor %}
+
+  <ul>
+    {% for i in range %}
+      <li>{{ questions[i].prompt }} {{ responses[i] }}</li>
+    {% endfor %}
+  </ul>
+
   <h1>Thanks for completing this survey!</h1>
 
 {% endblock %}

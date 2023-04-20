@@ -17,6 +17,7 @@ def get_root():
     button to start survey
 
     """
+    responses.clear()
 
     return render_template("survey_start.html",
                            survey_title=survey.title,
@@ -43,4 +44,38 @@ def show_question(number):
     question_index = int(number)
 
     return render_template("question.html",
-                           question=survey.questions[question_index])
+                           question=survey.questions[question_index],
+                           question_index = question_index)
+
+
+@app.post('/answer/<number>')
+def redirect_next_question(number):
+    """
+    redirects to the next question if there is one. otherwise, redirects to
+    completion page
+
+    """
+
+    survey_response = request.form["answer"]
+
+    responses.append(survey_response)
+
+    if int(number) >= len(survey.questions):
+        flash("yay!")
+
+        return redirect("/completion")
+    else:
+        return redirect(f"/question/{number}")
+
+
+@app.get('/completion')
+def get_completion():
+    """
+    renders completion page
+
+    """
+
+    return render_template("completion.html",
+                           responses = responses,
+                           questions = survey.questions,
+                           range = range(len(survey.questions)))
