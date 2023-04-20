@@ -8,20 +8,23 @@ app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 debug = DebugToolbarExtension(app)
 
-responses = [] # initialize responses list
+# session["responses"] = [] # initialize responses list
+
 
 @app.get('/')
 def get_root():
     """
     renders a page that shows user the title, instructions, and
     button to start survey
-
+    TODO: no need to be TOO specific for doc string
     """
-    responses.clear()
+    reset_session = []
+    session["responses"] = reset_session
 
     return render_template("survey_start.html",
                            survey_title=survey.title,
                            survey_instructions=survey.instructions)
+
 
 @app.post('/begin')
 def begin_survey():
@@ -34,38 +37,52 @@ def begin_survey():
     return redirect("/question/0")
 
 
-@app.get('/question/<number>')
+@app.get('/question/<int:number>')
 def show_question(number):
     """
     handles GET request and renders questions html template
 
     """
 
-    question_index = int(number)
+    survey_progress = len(session["responses"])
 
-    return render_template("question.html",
-                           question=survey.questions[question_index],
-                           question_index = question_index)
+    if survey_progress == len(survey.questions):
+
+        flash("Hey! You! Don't do that! You're already done! Get out!")
+        return redirect(f"/completion")
+    elif survey_progress != number:
+
+        flash("Hey! You! Don't do that! You're trying to access an invalid question!")
+        return redirect(f"/question/{survey_progress}")
+    else:
+
+        question = survey.questions[number]
+        return render_template("question.html",
+                            question=question,
+                            question_index = number)
 
 
-@app.post('/answer/<number>')
-def redirect_next_question(number):
+@app.post('/answer')
+def handle_response():
     """
+    receives answer from previous question and appends it to responses list, then
     redirects to the next question if there is one. otherwise, redirects to
     completion page
 
     """
 
     survey_response = request.form["answer"]
+    current_responses = session["responses"]
+    current_responses.append(survey_response)
+    session["responses"] = current_responses #add previous question answer to responses
 
-    responses.append(survey_response)
+    survey_progress = len(session["responses"])
 
-    if int(number) >= len(survey.questions):
+    if survey_progress >= len(survey.questions):
         flash("yay!")
-
         return redirect("/completion")
     else:
-        return redirect(f"/question/{number}")
+        return redirect(f"/question/{str(survey_progress)}")
 
 
 @app.get('/completion')
@@ -74,8 +91,9 @@ def get_completion():
     renders completion page
 
     """
+    question_length = range(len(survey.questions))
 
     return render_template("completion.html",
-                           responses = responses,
+                           responses = session["responses"],
                            questions = survey.questions,
-                           range = range(len(survey.questions)))
+                           range = question_length)
