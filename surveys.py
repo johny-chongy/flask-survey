@@ -4,7 +4,7 @@ class Question:
     def __init__(self, prompt, choices=('Yes', 'No'), allow_text=False):
         """Create question (assume Yes/No for choices).
 
-        question = question text
+        prompt = question text
         choices = iterable, like ["Yes", "No", "Maybe"]
         allow_text = T/F to control free-form textual explanation
         """
